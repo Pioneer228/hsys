@@ -7,7 +7,6 @@
 #include <cuda_runtime.h>
 #include <gtest/gtest.h>
 
-// Определяем row-major матрицу для согласованности с MatrixView
 using RowMajorMatrixXf
     = Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
 
@@ -15,31 +14,26 @@ class MatrixMulTest : public ::testing::TestWithParam<
                           std::tuple<std::size_t, std::size_t, std::size_t, float>> {
  protected:
   bool matmul_test_impl(std::size_t m, std::size_t k, std::size_t n, float tol) {
-    // Генерируем случайные матрицы в ROW-MAJOR порядке
     RowMajorMatrixXf A_target(m, k);
     A_target.setRandom();
 
     RowMajorMatrixXf B_target(k, n);
     B_target.setRandom();
 
-    RowMajorMatrixXf C_target = A_target * B_target;  // эталонное произведение
+    RowMajorMatrixXf C_target = A_target * B_target;
 
-    // Создаём матрицы на устройстве
     auto A = hsys::Matrix<float>(m, k);
     A.data().copy_from_host(A_target.data());
 
     auto B = hsys::Matrix<float>(k, n);
     B.data().copy_from_host(B_target.data());
 
-    // Выполняем умножение через operator*
     auto C = A * B;
 
-    // Проверяем размер результата
     if (C.nrows() != m || C.ncols() != n) {
       return false;
     }
 
-    // Копируем результат обратно на хост
     RowMajorMatrixXf C_from_device(m, n);
     C.data().copy_to_host(C_from_device.data());
 
@@ -68,4 +62,5 @@ INSTANTIATE_TEST_SUITE_P(
         std::make_tuple(128, 128, 128, 1e-5f)
     )
 );
+
 // clang-format on
