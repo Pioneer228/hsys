@@ -47,8 +47,8 @@ static void BM_OurMatrixMulGPU(benchmark::State& state) {
 }
 
 constexpr const int multiplier = 2;
-constexpr const auto range = std::make_pair(8, 1 << 26);
-//constexpr auto range = std::make_pair(8, 8192);
+//constexpr const auto range = std::make_pair(8, 1 << 26);
+constexpr auto range = std::make_pair(8, 8192);
 constexpr const auto unit = benchmark::kMillisecond;
 
 BENCHMARK(BM_EigenMatrixMulCPU)
