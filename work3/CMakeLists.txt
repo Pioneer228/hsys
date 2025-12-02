@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.24)
-project(work2 LANGUAGES CXX)
+project(work3 LANGUAGES CXX)
 
 option(ENABLE_TESTS "Enable tests" ON)
 option(ENABLE_BENCH "Enable benchmarks" ON)

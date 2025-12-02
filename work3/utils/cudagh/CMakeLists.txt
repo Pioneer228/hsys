@@ -4,7 +4,7 @@ project(cudagh LANGUAGES CXX)
 find_package(CUDAToolkit REQUIRED)
 
 add_library(cudagh INTERFACE)
-add_library(work2::cudagh ALIAS cudagh)
+add_library(work3::cudagh ALIAS cudagh)
 
 target_include_directories(cudagh INTERFACE
     ${CMAKE_CURRENT_SOURCE_DIR}/include/

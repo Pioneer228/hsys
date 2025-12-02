@@ -1,7 +1,7 @@
 #ifndef HSYS_MATRIX_OPERATORS_CUH
 #define HSYS_MATRIX_OPERATORS_CUH
 
-#include "kernels/kernel_matmul_chmem.cuh"
+#include "kernels/kernel_matmul_shmem.cuh"
 #include "matrix.cuh"
 
 #include <cassert>
@@ -22,14 +22,14 @@ Matrix<AtomT> operator*(const Matrix<AtomT>& A, const Matrix<AtomT>& B) {
   dim3 block(TILE_SIZE, TILE_SIZE);
   dim3 grid((n + TILE_SIZE - 1) / TILE_SIZE, (m + TILE_SIZE - 1) / TILE_SIZE);
 
-  kernel_matmul_tiled<<<grid, block>>>(C.view(), A.view(), B.view());
+  kernel_matmul_shmem<<<grid, block>>>(C.view(), A.view(), B.view());
 
 #ifdef DEBUG
   cudaDeviceSynchronize();
   auto err = cudaGetLastError();
   if (err != cudaSuccess) {
     throw std::runtime_error(
-        "kernel_matmul_tiled failed: " + std::string(cudaGetErrorString(err)));
+        "kernel_matmul_shmem failed: " + std::string(cudaGetErrorString(err)));
   }
 #endif
 

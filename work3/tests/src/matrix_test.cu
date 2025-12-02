@@ -1,5 +1,5 @@
-#include <work2/matrix.cuh>
-#include <work2/kinds.cuh>  // ← обязательно для AtomKind
+#include <work3/kinds.cuh>  // ← обязательно для AtomKind
+#include <work3/matrix.cuh>
 
 #include <gtest/gtest.h>
 
@@ -96,7 +96,8 @@ TEST(MatrixTest, InstanceIndependence) {
   EXPECT_NE(mat1.size(), mat2.size());
 }
 
-class MatrixSizeTest : public ::testing::TestWithParam<std::pair<std::size_t, std::size_t>> {};
+class MatrixSizeTest
+    : public ::testing::TestWithParam<std::pair<std::size_t, std::size_t>> {};
 
 TEST_P(MatrixSizeTest, SizeParameterized) {
   const auto [nrows, ncols] = GetParam();
@@ -107,20 +108,16 @@ TEST_P(MatrixSizeTest, SizeParameterized) {
   EXPECT_EQ(mat.size(), nrows * ncols);
 }
 
-INSTANTIATE_TEST_SUITE_P(
-    MatrixSizes,
+INSTANTIATE_TEST_SUITE_P(MatrixSizes,
     MatrixSizeTest,
-    ::testing::Values(
-        std::make_pair(0, 0),
+    ::testing::Values(std::make_pair(0, 0),
         std::make_pair(1, 1),
         std::make_pair(0, 10),
         std::make_pair(10, 0),
         std::make_pair(1, 100),
         std::make_pair(100, 1),
         std::make_pair(32, 32),
-        std::make_pair(128, 64)
-    )
-);
+        std::make_pair(128, 64)));
 
 // TEST(MatrixTest, FeatureTypeExists) {
 //   Matrix<float> mat(1, 1);

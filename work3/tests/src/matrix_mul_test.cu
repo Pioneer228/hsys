@@ -1,5 +1,5 @@
-#include <work2/matrix.cuh>
-#include <work2/matrix_operators.cuh>
+#include <work3/matrix.cuh>
+#include <work3/matrix_operators.cuh>
 
 #define EIGEN_NO_CUDA
 
