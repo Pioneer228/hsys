@@ -35,4 +35,8 @@ python ./work1/utils/benchmark_pp/speedup_chart.py \
     --xlog --ylog -c speedup_chart.html
 ```
 ___
+## Realese
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1ug2foxYTSEPEYrWu_RqbsnpKstxUKYdB#scrollTo=zsw3CRlms0Tx)
+
+## Test
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/16OTX9CfMdNSH0rREZVTmBmtsVanQzNxB)
