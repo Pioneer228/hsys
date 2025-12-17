@@ -15,17 +15,22 @@ struct MatrixView {
 
  private:
   atom_t* data_;
+  const atom_t* cdata_;
   std::size_t nrows_;
   std::size_t ncols_;
 
  public:
+  // ===== mutable view =====
   __host__ __device__ MatrixView(atom_t* data, std::size_t nrows, std::size_t ncols)
       : data_(data)
+      , cdata_(data)
       , nrows_(nrows)
       , ncols_(ncols) {}
 
+  // ===== const view =====
   __host__ __device__ MatrixView(const atom_t* data, std::size_t nrows, std::size_t ncols)
-      : data_(const_cast<atom_t*>(data))
+      : data_(nullptr)
+      , cdata_(data)
       , nrows_(nrows)
       , ncols_(ncols) {}
 
@@ -41,12 +46,14 @@ struct MatrixView {
     return ncols_;
   }
 
+  // ===== mutable access =====
   __host__ __device__ atom_t& operator()(std::size_t i, std::size_t j) {
     return data_[i * ncols_ + j];
   }
 
+  // ===== const access =====
   __host__ __device__ const atom_t& operator()(std::size_t i, std::size_t j) const {
-    return data_[i * ncols_ + j];
+    return cdata_[i * ncols_ + j];
   }
 };
 

@@ -12,7 +12,7 @@ namespace hsys {
 
 using namespace nvcuda;
 
-constexpr int WMMA_TILE = 16;
+constexpr int wmma_tile = 16;
 
 template <AtomKind AtomT>
 __global__ void kernel_matmul_wmma(
@@ -22,27 +22,27 @@ __global__ void kernel_matmul_wmma(
 
   int warp_id = (blockIdx.x * blockDim.x + threadIdx.x) / warpSize;
 
-  int tiles_per_row = (C.ncols() + WMMA_TILE - 1) / WMMA_TILE;
+  int tiles_per_row = (C.ncols() + wmma_tile - 1) / wmma_tile;
 
   int tile_i = warp_id / tiles_per_row;
   int tile_j = warp_id % tiles_per_row;
 
-  int row = tile_i * WMMA_TILE;
-  int col = tile_j * WMMA_TILE;
+  int row = tile_i * wmma_tile;
+  int col = tile_j * wmma_tile;
 
   if (row >= C.nrows() || col >= C.ncols()) return;
 
-  wmma::fragment<wmma::matrix_a, WMMA_TILE, WMMA_TILE, WMMA_TILE, half, wmma::row_major>
+  wmma::fragment<wmma::matrix_a, wmma_tile, wmma_tile, wmma_tile, half, wmma::row_major>
       a_frag;
 
-  wmma::fragment<wmma::matrix_b, WMMA_TILE, WMMA_TILE, WMMA_TILE, half, wmma::row_major>
+  wmma::fragment<wmma::matrix_b, wmma_tile, wmma_tile, wmma_tile, half, wmma::row_major>
       b_frag;
 
-  wmma::fragment<wmma::accumulator, WMMA_TILE, WMMA_TILE, WMMA_TILE, float> c_frag;
+  wmma::fragment<wmma::accumulator, wmma_tile, wmma_tile, wmma_tile, float> c_frag;
 
   wmma::fill_fragment(c_frag, 0.0f);
 
-  for (int k = 0; k < A.ncols(); k += WMMA_TILE) {
+  for (int k = 0; k < A.ncols(); k += wmma_tile) {
     const half* a_ptr = &A(row, k);
     const half* b_ptr = &B(k, col);
 

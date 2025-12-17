@@ -19,15 +19,15 @@ inline Matrix<float> operator*(const Matrix<half>& A, const Matrix<half>& B) {
 
   Matrix<float> C(m, n);
 
-  constexpr int WMMA_TILE = 16;
-  constexpr int WARPS_PER_BLOCK = 4;
+  constexpr int wmma_tile = 16;
+  constexpr int warps_per_block = 4;
   constexpr int WARP_SIZE = 32;
 
-  dim3 block(WARPS_PER_BLOCK * WARP_SIZE);
+  dim3 block(warps_per_block * WARP_SIZE);
 
-  int tiles = ((m + WMMA_TILE - 1) / WMMA_TILE) * ((n + WMMA_TILE - 1) / WMMA_TILE);
+  int tiles = ((m + wmma_tile - 1) / wmma_tile) * ((n + wmma_tile - 1) / wmma_tile);
 
-  dim3 grid((tiles + WARPS_PER_BLOCK - 1) / WARPS_PER_BLOCK);
+  dim3 grid((tiles + warps_per_block - 1) / warps_per_block);
 
   kernel_matmul_wmma<half><<<grid, block>>>(C.view(), A.view(), B.view());
 
