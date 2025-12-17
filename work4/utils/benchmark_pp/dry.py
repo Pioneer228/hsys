@@ -4,13 +4,15 @@ from pathlib import Path
 from datetime import datetime
 from argparse import ArgumentTypeError, ArgumentParser
 from functools import partial
+import typing
+import re
 
 
-def parse_complexity(path_to_result: Path) -> dict:
-    if not path_to_result.exists():
+def parse_complexity_file(path_to_json: Path, filter: str=None, complexity={}) -> dict:
+    if not path_to_json.exists():
         raise FileNotFoundError("File not found")
 
-    with open(path_to_result, "r") as f:
+    with open(path_to_json, "r") as f:
         data = json.load(f)
 
     def parse_benchmark_and_size(x: str):
@@ -22,10 +24,8 @@ def parse_complexity(path_to_result: Path) -> dict:
     df["benchmark"] = df["name"].apply(lambda x: parse_benchmark_and_size(x)[0])
     df["size"] = df["name"].apply(lambda x: parse_benchmark_and_size(x)[1])
 
-    complexity = {}
-
     for benchmark in df["benchmark"]:
-        if benchmark not in complexity:
+        if (benchmark not in complexity) and (re.match(filter, benchmark) is not None if filter else True):
             complexity[benchmark] = df[df["benchmark"] == benchmark].sort_values(
                 "size"
             )  # pyright: ignore
@@ -33,6 +33,13 @@ def parse_complexity(path_to_result: Path) -> dict:
     if len(complexity) == 0:
         raise ValueError("Data not found")
 
+    return complexity
+
+
+def parse_complexity_many_files(paths_to_jsons: typing.List[Path], filter: str=None) -> dict:
+    complexity = {}
+    for path_to_json in paths_to_jsons:
+        parse_complexity_file(path_to_json, filter, complexity)
     return complexity
 
 
@@ -67,8 +74,9 @@ def make_default_argparser():
     argparser.add_argument(
         "-j",
         "--json",
+        nargs="+",
         required=True,
-        type=str,
+        default=[],
         help="Path to benchmark results (JSON)",
     )
 
