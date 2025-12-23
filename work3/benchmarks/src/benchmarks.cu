@@ -1,20 +1,18 @@
 #include <cudagh.hpp>
-// #include <utils/cudagh/include/cudagh.hpp>
-// #include <work3/utils/cudagh/include/cudagh.hpp>
+
 #include <work3/kernels/kernel_matmul_shmem.cuh>
 #include <work3/matrix.cuh>
 #include <work3/matrix_operators.cuh>
 
 #define EIGEN_NO_CUDA
 #include <Eigen/Dense>
+
 #include <benchmark/benchmark.h>
 #include <cuda_timer.hpp>
 
-// #include <work3/utils/cuda_timer/include/cuda_timer.hpp>
+// ================= CPU =================
 
-static void BM_EigenMatrixMulCPU(benchmark::State& state) {
-  auto N = state.range(0);
-
+static void BM_EigenMatrixMulCPU(benchmark::State& state, int N) {
   Eigen::MatrixXf A = Eigen::MatrixXf::Random(N, N);
   Eigen::MatrixXf B = Eigen::MatrixXf::Random(N, N);
   Eigen::MatrixXf C(N, N);
@@ -26,45 +24,63 @@ static void BM_EigenMatrixMulCPU(benchmark::State& state) {
   }
 }
 
-static void BM_OurMatrixMulGPU(benchmark::State& state) {
-  auto N = state.range(0);
+// ================= GPU (shared memory) =================
 
-  auto a = hsys::Matrix<float>(N, N);
-  auto b = hsys::Matrix<float>(N, N);
-  auto c = hsys::Matrix<float>(N, N);
+static void BM_MatMul_Shmem(benchmark::State& state, int N) {
+  auto A = hsys::Matrix<float>(N, N);
+  auto B = hsys::Matrix<float>(N, N);
 
   for (auto _ : state) {
-    float elapsed_time = 0;
+    float elapsed_time = 0.0f;
     {
       CUDATimer timer(elapsed_time);
-      auto c = a * b;
+      auto C = A * B;
     }
 
     benchmark::DoNotOptimize(elapsed_time);
     benchmark::ClobberMemory();
-
     state.SetIterationTime(elapsed_time);
   }
 }
 
-constexpr const int multiplier = 2;
-// constexpr const auto range = std::make_pair(8, 1 << 26);
-constexpr auto range = std::make_pair(8, 8192);
 constexpr const auto unit = benchmark::kMillisecond;
 
-BENCHMARK(BM_EigenMatrixMulCPU)
-    ->Name("Eigen Matrix Multiplication (CPU)")
-    ->RangeMultiplier(multiplier)
-    ->Ranges({range})
-    ->Unit(unit)
-    ->UseRealTime()
-    ->MeasureProcessCPUTime();
+// ---------- CPU ----------
+BENCHMARK_CAPTURE(BM_EigenMatrixMulCPU, CPU_16, 16)
+    ->Name("Eigen Matrix Multiplication (CPU)/16")
+    ->Unit(unit);
 
-BENCHMARK(BM_OurMatrixMulGPU)
-    ->Name("CUDA Matrix Multiplication (GPU)")
-    ->RangeMultiplier(multiplier)
-    ->Ranges({range})
+BENCHMARK_CAPTURE(BM_EigenMatrixMulCPU, CPU_32, 32)
+    ->Name("Eigen Matrix Multiplication (CPU)/32")
+    ->Unit(unit);
+
+BENCHMARK_CAPTURE(BM_EigenMatrixMulCPU, CPU_64, 64)
+    ->Name("Eigen Matrix Multiplication (CPU)/64")
+    ->Unit(unit);
+
+BENCHMARK_CAPTURE(BM_EigenMatrixMulCPU, CPU_128, 128)
+    ->Name("Eigen Matrix Multiplication (CPU)/128")
+    ->Unit(unit);
+
+// ---------- GPU ----------
+BENCHMARK_CAPTURE(BM_MatMul_Shmem, SHMEM_16, 16)
+    ->Name("CUDA Matrix Multiplication (Shared Memory)/16")
     ->Unit(unit)
     ->UseManualTime();
 
-BENCHMARK_MAIN();  // NOLINT
+BENCHMARK_CAPTURE(BM_MatMul_Shmem, SHMEM_32, 32)
+    ->Name("CUDA Matrix Multiplication (Shared Memory)/32")
+    ->Unit(unit)
+    ->UseManualTime();
+
+BENCHMARK_CAPTURE(BM_MatMul_Shmem, SHMEM_64, 64)
+    ->Name("CUDA Matrix Multiplication (Shared Memory)/64")
+    ->Unit(unit)
+    ->UseManualTime();
+
+BENCHMARK_CAPTURE(BM_MatMul_Shmem, SHMEM_128, 128)
+    ->Name("CUDA Matrix Multiplication (Shared Memory)/128")
+    ->Unit(unit)
+    ->UseManualTime();
+
+BENCHMARK_MAIN();
