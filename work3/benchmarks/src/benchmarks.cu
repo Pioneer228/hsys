@@ -12,7 +12,9 @@
 
 // ================= CPU =================
 
-static void BM_EigenMatrixMulCPU(benchmark::State& state, int N) {
+static void BM_EigenMatrixMulCPU(benchmark::State& state) {
+  const int N = state.range(0);
+
   Eigen::MatrixXf A = Eigen::MatrixXf::Random(N, N);
   Eigen::MatrixXf B = Eigen::MatrixXf::Random(N, N);
   Eigen::MatrixXf C(N, N);
@@ -24,9 +26,11 @@ static void BM_EigenMatrixMulCPU(benchmark::State& state, int N) {
   }
 }
 
-// ================= GPU (shared memory) =================
+// ================= GPU (Shared Memory) =================
 
-static void BM_MatMul_Shmem(benchmark::State& state, int N) {
+static void BM_MatMul_Shmem(benchmark::State& state) {
+  const int N = state.range(0);
+
   auto A = hsys::Matrix<float>(N, N);
   auto B = hsys::Matrix<float>(N, N);
 
@@ -43,43 +47,26 @@ static void BM_MatMul_Shmem(benchmark::State& state, int N) {
   }
 }
 
-constexpr const auto unit = benchmark::kMillisecond;
+// ================= Benchmark config =================
+
+constexpr int multiplier = 2;
+constexpr auto range = std::make_pair(8, 8192);
+constexpr auto unit = benchmark::kMillisecond;
 
 // ---------- CPU ----------
-BENCHMARK_CAPTURE(BM_EigenMatrixMulCPU, CPU_16, 16)
-    ->Name("Eigen Matrix Multiplication (CPU)/16")
-    ->Unit(unit);
-
-BENCHMARK_CAPTURE(BM_EigenMatrixMulCPU, CPU_32, 32)
-    ->Name("Eigen Matrix Multiplication (CPU)/32")
-    ->Unit(unit);
-
-BENCHMARK_CAPTURE(BM_EigenMatrixMulCPU, CPU_64, 64)
-    ->Name("Eigen Matrix Multiplication (CPU)/64")
-    ->Unit(unit);
-
-BENCHMARK_CAPTURE(BM_EigenMatrixMulCPU, CPU_128, 128)
-    ->Name("Eigen Matrix Multiplication (CPU)/128")
-    ->Unit(unit);
+BENCHMARK(BM_EigenMatrixMulCPU)
+    ->Name("Eigen Matrix Multiplication (CPU)")
+    ->RangeMultiplier(multiplier)
+    ->Ranges({range})
+    ->Unit(unit)
+    ->UseRealTime()
+    ->MeasureProcessCPUTime();
 
 // ---------- GPU ----------
-BENCHMARK_CAPTURE(BM_MatMul_Shmem, SHMEM_16, 16)
-    ->Name("CUDA Matrix Multiplication (Shared Memory)/16")
-    ->Unit(unit)
-    ->UseManualTime();
-
-BENCHMARK_CAPTURE(BM_MatMul_Shmem, SHMEM_32, 32)
-    ->Name("CUDA Matrix Multiplication (Shared Memory)/32")
-    ->Unit(unit)
-    ->UseManualTime();
-
-BENCHMARK_CAPTURE(BM_MatMul_Shmem, SHMEM_64, 64)
-    ->Name("CUDA Matrix Multiplication (Shared Memory)/64")
-    ->Unit(unit)
-    ->UseManualTime();
-
-BENCHMARK_CAPTURE(BM_MatMul_Shmem, SHMEM_128, 128)
-    ->Name("CUDA Matrix Multiplication (Shared Memory)/128")
+BENCHMARK(BM_MatMul_Shmem)
+    ->Name("CUDA Matrix Multiplication (Shared Memory)")
+    ->RangeMultiplier(multiplier)
+    ->Ranges({range})
     ->Unit(unit)
     ->UseManualTime();
 

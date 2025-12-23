@@ -14,7 +14,9 @@
 
 // ================= CPU =================
 
-static void BM_EigenMatrixMulCPU(benchmark::State& state, int N) {
+static void BM_EigenMatrixMulCPU(benchmark::State& state) {
+  const int N = state.range(0);
+
   Eigen::MatrixXf A = Eigen::MatrixXf::Random(N, N);
   Eigen::MatrixXf B = Eigen::MatrixXf::Random(N, N);
   Eigen::MatrixXf C(N, N);
@@ -28,7 +30,9 @@ static void BM_EigenMatrixMulCPU(benchmark::State& state, int N) {
 
 // ================= GPU (WMMA) =================
 
-static void BM_MatMul_WMMA(benchmark::State& state, int N) {
+static void BM_MatMul_WMMA(benchmark::State& state) {
+  const int N = state.range(0);
+
   auto A = hsys::Matrix<half>(N, N);
   auto B = hsys::Matrix<half>(N, N);
 
@@ -40,7 +44,7 @@ static void BM_MatMul_WMMA(benchmark::State& state, int N) {
     float elapsed_time = 0.0f;
     {
       CUDATimer timer(elapsed_time);
-      auto C = A * B;  // returns Matrix<float>
+      auto C = A * B;  // Matrix<float>
     }
 
     benchmark::DoNotOptimize(elapsed_time);
@@ -49,43 +53,26 @@ static void BM_MatMul_WMMA(benchmark::State& state, int N) {
   }
 }
 
-constexpr const auto unit = benchmark::kMillisecond;
+// ================= Benchmark config =================
+
+constexpr int multiplier = 2;
+constexpr auto range = std::make_pair(8, 8192);
+constexpr auto unit = benchmark::kMillisecond;
 
 // ---------- CPU ----------
-BENCHMARK_CAPTURE(BM_EigenMatrixMulCPU, CPU_16, 16)
-    ->Name("Eigen Matrix Multiplication (CPU)/16")
-    ->Unit(unit);
-
-BENCHMARK_CAPTURE(BM_EigenMatrixMulCPU, CPU_32, 32)
-    ->Name("Eigen Matrix Multiplication (CPU)/32")
-    ->Unit(unit);
-
-BENCHMARK_CAPTURE(BM_EigenMatrixMulCPU, CPU_64, 64)
-    ->Name("Eigen Matrix Multiplication (CPU)/64")
-    ->Unit(unit);
-
-BENCHMARK_CAPTURE(BM_EigenMatrixMulCPU, CPU_128, 128)
-    ->Name("Eigen Matrix Multiplication (CPU)/128")
-    ->Unit(unit);
+BENCHMARK(BM_EigenMatrixMulCPU)
+    ->Name("Eigen Matrix Multiplication (CPU)")
+    ->RangeMultiplier(multiplier)
+    ->Ranges({range})
+    ->Unit(unit)
+    ->UseRealTime()
+    ->MeasureProcessCPUTime();
 
 // ---------- GPU ----------
-BENCHMARK_CAPTURE(BM_MatMul_WMMA, WMMA_16, 16)
-    ->Name("CUDA Matrix Multiplication (WMMA)/16")
-    ->Unit(unit)
-    ->UseManualTime();
-
-BENCHMARK_CAPTURE(BM_MatMul_WMMA, WMMA_32, 32)
-    ->Name("CUDA Matrix Multiplication (WMMA)/32")
-    ->Unit(unit)
-    ->UseManualTime();
-
-BENCHMARK_CAPTURE(BM_MatMul_WMMA, WMMA_64, 64)
-    ->Name("CUDA Matrix Multiplication (WMMA)/64")
-    ->Unit(unit)
-    ->UseManualTime();
-
-BENCHMARK_CAPTURE(BM_MatMul_WMMA, WMMA_128, 128)
-    ->Name("CUDA Matrix Multiplication (WMMA)/128")
+BENCHMARK(BM_MatMul_WMMA)
+    ->Name("CUDA Matrix Multiplication (WMMA)")
+    ->RangeMultiplier(multiplier)
+    ->Ranges({range})
     ->Unit(unit)
     ->UseManualTime();
 
