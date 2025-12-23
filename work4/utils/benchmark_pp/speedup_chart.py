@@ -62,7 +62,6 @@ def make_speedup_chart(
 
     return fig
 
-
 def main(argv):
     argparser = dry.make_default_argparser()
 
@@ -79,7 +78,7 @@ def main(argv):
         "--reference",
         required=True,
         type=str,
-        help="Reference banchmark",
+        help="Reference benchmark",
     )
 
     argparser.add_argument(
@@ -87,15 +86,20 @@ def main(argv):
         "--target",
         required=True,
         type=str,
-        help="Target banchmark",
+        help="Target benchmark",
     )
 
     args = argparser.parse_args(argv)
 
+    complexity = dry.parse_complexity_many_files(
+        [Path(p) for p in args.json]
+    )
+
     target_df = calc_speedup(
-        dry.parse_complexity(Path(args.json)),
+        complexity,
         args.target,
         args.reference,
+        args.cpu,
     )
 
     dry.show_chart(
@@ -111,7 +115,6 @@ def main(argv):
         ),
         args.chart,
     )
-
 
 if __name__ == "__main__":
     import sys

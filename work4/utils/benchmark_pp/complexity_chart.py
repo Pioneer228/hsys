@@ -69,6 +69,36 @@ def main(argv):
 
     args = argparser.parse_args(argv)
 
+    complexity = dry.parse_complexity_many_files(
+        [Path(p) for p in args.json]
+    )
+
+    dry.show_chart(
+        make_complexity_chart(
+            complexity,
+            args.chart,
+            args.cpu,
+            args.width,
+            args.height,
+            args.xlog,
+            args.ylog,
+            args.dark,
+        ),
+        args.chart,
+    )
+
+    argparser = dry.make_default_argparser()
+
+    argparser.add_argument(
+        "-c",
+        "--chart",
+        type=str,
+        default=str(PATH_TO_CHART),
+        help="Output path for the chart file",
+    )
+
+    args = argparser.parse_args(argv)
+
     dry.show_chart(
         make_complexity_chart(
             dry.parse_complexity(Path(args.json)),
