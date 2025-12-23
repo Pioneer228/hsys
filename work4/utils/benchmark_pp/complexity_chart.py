@@ -87,34 +87,7 @@ def main(argv):
         args.chart,
     )
 
-    argparser = dry.make_default_argparser()
-
-    argparser.add_argument(
-        "-c",
-        "--chart",
-        type=str,
-        default=str(PATH_TO_CHART),
-        help="Output path for the chart file",
-    )
-
-    args = argparser.parse_args(argv)
-
-    dry.show_chart(
-        make_complexity_chart(
-            dry.parse_complexity(Path(args.json)),
-            args.chart,
-            args.cpu,
-            args.width,
-            args.height,
-            args.xlog,
-            args.ylog,
-            args.dark,
-        ),
-        args.chart,
-    )
-
 
 if __name__ == "__main__":
     import sys
-
     main(sys.argv[1:])
