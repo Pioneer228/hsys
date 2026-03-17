@@ -15,4 +15,7 @@ CUDATimer::~CUDATimer() {
   cudaEventElapsedTime(&milliseconds, _start, _stop);
 
   _elapse_time_s = milliseconds / 1000;
+
+  cudaEventDestroy(_start);
+  cudaEventDestroy(_stop);
 }
